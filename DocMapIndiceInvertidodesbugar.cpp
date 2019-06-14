@@ -35,12 +35,12 @@ public:
     }
 
     void mapear (string word){//Insere no campo DOUBLE do map quantas vezes a palavra tem no documento.
-    if (this->palavras_[word]==NULL){this->palavras_[word]=1;}//Se a palavra n„o existe ainda no map, a insere, colocando 1.
-    else {this->palavras_[word]++;}//Caso a palavra ja esteja no Documento incrementa quantas vezes ela est· la.
+    if (this->palavras_[word]==NULL){this->palavras_[word]=1;}//Se a palavra n√£o existe ainda no map, a insere, colocando 1.
+    else {this->palavras_[word]++;}//Caso a palavra ja esteja no Documento incrementa quantas vezes ela est√° la.
     }
 
     double find (string word){//Retorna quantas vezes uma palavra aparece no texto
-    if (this->palavras_[word]==NULL){return 0;}//Retorna 0 vezes caso n„o tenha aquela palavra no map do documento.
+    if (this->palavras_[word]==NULL){return 0;}//Retorna 0 vezes caso n√£o tenha aquela palavra no map do documento.
     else {return this->palavras_[word];}//Retorna quantas vezes a palavra aparece no texto do documento.
     }
 
@@ -66,7 +66,7 @@ public:
 class Inv{
 private:
     string name_;
-    map<string,set<string> > inv_;// Map que guarda como CHAVE  a PALAVRA do vocabulario de todos os texto e o VALOR È um set de strings contendo o nome dos docs que tem essa palavra.
+    map<string,set<string> > inv_;// Map que guarda como CHAVE  a PALAVRA do vocabulario de todos os texto e o VALOR √© um set de strings contendo o nome dos docs que tem essa palavra.
 public:
 
     Inv (string n){// construtor da classe com nome.
@@ -103,7 +103,7 @@ public:
 
 
 
-    void imprimeInv(){// Mostra todas as palavras do indice junto com os documentos que as contÈm.
+    void imprimeInv(){// Mostra todas as palavras do indice junto com os documentos que as cont√©m.
     map<string,set<string> >::iterator it ;
     set<string>             ::iterator jt ;
 
@@ -119,13 +119,13 @@ public:
 
 
 
-    set<string> documentosdabusca(set<string> palavrasdabusca){//FunÁ„o para retornar uma lista de documentos que contem todas as palavras da busca.
+    set<string> documentosdabusca(set<string> palavrasdabusca){//Fun√ß√£o para retornar uma lista de documentos que contem todas as palavras da busca.
 
     set<string> docsallwords; // Conjunto de string resultante que contem a lista de documentos com todas as palavras da busca.
     set<string> ::iterator it = palavrasdabusca.begin();
     set<string> ::iterator jt ;
 
-    while (it != palavrasdabusca.end()){//LaÁo while que pega palavra por paralavra e busca quais textos tem ou n„o tal palavra.
+    while (it != palavrasdabusca.end()){//La√ßo while que pega palavra por paralavra e busca quais textos tem ou n√£o tal palavra.
     if (docsallwords.empty()){
         docsallwords=busca(*it);
         if (docsallwords.empty()){
@@ -136,10 +136,10 @@ public:
     it++;
     }
     return docsallwords;
-    }//Fim funÁ„o documentosdabusca.
+    }//Fim fun√ß√£o documentosdabusca.
 
 
-    set<string> intersecao (set<string> a,set<string> b){// FunÁ„o que faz a intersecao de dois conjuntos de string
+    set<string> intersecao (set<string> a,set<string> b){// Fun√ß√£o que faz a intersecao de dois conjuntos de string
 
     set<string> resultado;
 
@@ -152,7 +152,7 @@ public:
     }
 
 
-};// Fim classe Õndice Invertido Inv.
+};// Fim classe √çndice Invertido Inv.
 
 
 
@@ -180,19 +180,19 @@ ifstream documento;
 documento.open(nomearq);
 
 
-if (documento.is_open()){//Se o arquivo foi encontrado executar os comando do laÁo.
+if (documento.is_open()){//Se o arquivo foi encontrado executar os comando do la√ßo.
     alldocs.push_back(nomearq);
     it = alldocs.end();
     it--;
-    while(getline(documento,linha)){//LaÁo para percorrer todo o conteudo do arquivo.
+    while(getline(documento,linha)){//La√ßo para percorrer todo o conteudo do arquivo.
 
-linha.resize(linha.size()+1);//Usado para o laÁo posterior saber quando h· uma quebra de linha
-linha.push_back('\n');//Usado para o laÁo posterior saber quando h· uma quebra de linha
+linha.resize(linha.size()+1);//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
+linha.push_back('\n');//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
 
-for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do documento.
-    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//laÁo para retirar caracteres de pontuaÁ„o.
+for (int i=0;i<linha.size();i++){//La√ßo para retirar palavra por palavra do documento.
+    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//la√ßo para retirar caracteres de pontua√ß√£o.
     }
-    else if (linha[i]==' '){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]==' '){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         palavra=converter(palavra);
@@ -202,7 +202,7 @@ for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do docu
         character.clear();
 
     }
-    else if (linha[i]=='\n'){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]=='\n'){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         palavra.pop_back();
@@ -228,7 +228,7 @@ cout<<"O arquivo nao pode ser encontrado, verifique se o arquivo esta dentro da 
 
 documento.close();
 i++;
-}//fim while da inserÁ„o de documentos no programa
+}//fim while da inser√ß√£o de documentos no programa
 
 
 
@@ -242,26 +242,26 @@ arquivobusca << busca;// Passagem do que foi digitado na string busca para um do
 arquivobusca.close();
 
 
-Doc pesquisa("pesquisa");// Cria um documento da classe Doc para poder fazer operaÁıes.
+Doc pesquisa("pesquisa");// Cria um documento da classe Doc para poder fazer opera√ß√µes.
 
 
 ifstream abrebusca;
 abrebusca.open("busca.txt");
 
 
-if (abrebusca.is_open()){//Se o arquivo foi encontrado executar os comando do laÁo.
+if (abrebusca.is_open()){//Se o arquivo foi encontrado executar os comando do la√ßo.
 string linha;
 vector<char>character;
 
-    while(getline(abrebusca,linha)){//LaÁo para percorrer todo o conteudo do arquivo.
+    while(getline(abrebusca,linha)){//La√ßo para percorrer todo o conteudo do arquivo.
 
-linha.resize(linha.size()+1);//Usado para o laÁo posterior saber quando h· uma quebra de linha
-linha.push_back('\n');//Usado para o laÁo posterior saber quando h· uma quebra de linha
+linha.resize(linha.size()+1);//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
+linha.push_back('\n');//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
 
-for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do documento.
-    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//laÁo para retirar caracteres de pontuaÁ„o.
+for (int i=0;i<linha.size();i++){//La√ßo para retirar palavra por palavra do documento.
+    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//la√ßo para retirar caracteres de pontua√ß√£o.
     }
-    else if (linha[i]==' '){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]==' '){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         pesquisa.mapear(converter(palavra));
@@ -269,7 +269,7 @@ for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do docu
         character.clear();
 
     }
-    else if (linha[i]=='\n'){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]=='\n'){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         palavra.pop_back();
@@ -360,7 +360,7 @@ return 0;
 
 
 
-string converter(string word){//funÁ„o para colocar a palavra em min˙sculo e retirar hifÈns.
+string converter(string word){//fun√ß√£o para colocar a palavra em min√∫sculo e retirar hif√©ns.
 
 int hifen=1;
 while (hifen){
@@ -383,7 +383,7 @@ return word;
 
 
 
-/*class Alldocs{
+class Alldocs{
 private:
     string nome_;
     list<Doc> alldocs_;
