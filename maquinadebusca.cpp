@@ -14,7 +14,8 @@
 #include <set>
 #include <list>
 #include <fstream>
-
+#include <dirent.h>
+#include <cmath>
 
 
 using namespace std;
@@ -24,56 +25,106 @@ class Doc {
 private:
     string name_;
     map<string,double> palavras_;//map utilizado para saber se a palavra no campo STRING esta no documento e quantas vezes no campo DOUBLE
+    map<string,double> coordenadaW_;//A importancia de cada palavra dentro do documento.
+    map<string,double> idf_;// Indice idf de cada palavra do documento
+    double cosseno_=0;
 
 public:
+
     Doc (string n){//construtor da classe que coloca o nome do documento que o chamou.
     this->name_=n;
-    }
+    }//Fim do construtor da classe
 
     string filename(){//Retorna o nome do documento
     return this->name_;
-    }
+    }//fim da fun√ß√£o filename
 
     void mapear (string word){//Insere no campo DOUBLE do map quantas vezes a palavra tem no documento.
-    if (this->palavras_[word]==NULL){this->palavras_[word]=1;}//Se a palavra n„o existe ainda no map, a insere, colocando 1.
-    else {this->palavras_[word]++;}//Caso a palavra ja esteja no Documento incrementa quantas vezes ela est· la.
-    }
+    if (this->palavras_[word]==NULL){this->palavras_[word]=1;}//Se a palavra n√£o existe ainda no map, a insere, colocando 1.
+    else {this->palavras_[word]++;}//Caso a palavra ja esteja no Documento incrementa quantas vezes ela est√° la.
+    }//Fim da fun√ß√£o mapear
 
     double find (string word){//Retorna quantas vezes uma palavra aparece no texto
-    if (this->palavras_[word]==NULL){return 0;}//Retorna 0 vezes caso n„o tenha aquela palavra no map do documento.
+    if (this->palavras_[word]==NULL){return 0;}//Retorna 0 vezes caso n√£o tenha aquela palavra no map do documento.
     else {return this->palavras_[word];}//Retorna quantas vezes a palavra aparece no texto do documento.
-    }
+    }//Fim da fun√ß√£o find
 
     int size(){
     return palavras_.size();
-    }
+    }//Fim da fun√ß√£o size.
 
     set<string> returnwords (){//Retorna um conjunto de string contendo as palavras no documento que a chamou.
     set<string> documentwords;
     map<string,double>::iterator it = this->palavras_.begin();
     while (it != this->palavras_.end()){
-       cout<<it->first<<" ";
        documentwords.insert(it->first);
         it++;
     }
-    cout<<endl<<endl;
     return documentwords;
-    }
+    }//Fim da fun√ß√£o return words
 
-};
+   void importidf(map<string,double> idf){
+   this->idf_=idf;
+   }
+    map<string,double> returnidf (){//Retorna o idf das palavras do documento que o chamou.
+    map<string,double>::iterator it = idf_.begin();
+
+    while (it != idf_.end()){
+    it++;
+    }
+    return idf_;
+    }//Fim da fun√ß√£o importaridf
+
+
+    void coordenadaW(){
+    map<string,double>::iterator it = palavras_.begin();
+    while(it != palavras_.end()){
+        coordenadaW_[it->first]=find(it->first)*idf_[it->first] ;
+        it++;
+    }
+    }//Fim da fun√ß√£o coordenadaW
+
+
+    double returnW(string p){// Retorna a coordenadaW W(dj.pi) de uma palavra.
+    return coordenadaW_[p];
+    }//Fim da fun√ß√£o returnW
+
+
+
+    void cosseno(string p,double Wqpi){// Fun√ß√£o ja automatizada que calcula (WdxP1 * WdxP2 * WdxPN .... )
+    cosseno_= cosseno_ + (returnW(p)*Wqpi);
+    }//Fim da fun√ß√£o cosseno.
+
+    double returncosseno(){
+    return cosseno_;
+    }//Fim da fun√ß√£o returncosseno.
+
+
+};//Fim classe Doc.
 
 
 class Inv{
-private: string name_;
-         map<string,set<string> > inv_;// Map que guarda como CHAVE  a PALAVRA do vocabulario de todos os texto e o VALOR È um set de strings contendo o nome dos docs que tem essa palavra.
-public:Inv (string n){// construtor da classe com nome.
+private:
+    string name_;
+    map<string,set<string> > inv_;// Map que guarda como CHAVE  a PALAVRA do vocabulario de todos os texto e o VALOR √© um set de strings contendo o nome dos docs que tem essa palavra.
+    map<string,double>       idf_;//Indice idf de cada palavra do vocabulario.
+public:
+
+    Inv (string n){// construtor da classe com nome.
     this->name_=n;
-    }
+    }//Fim fun√ß√£o contrutor Inv
+
     void mapear (string word, string nomedoc){//Insere no campo set<string> do map quais os documentos tem a palavra documento.
     inv_[word].insert(nomedoc);
-    }
-    set<string> busca(string word){//Busca se a palavra existe ou nao no indice invertido e retorna uma lista com os documentos com a palavra.
-      set<string> docsnabusca;
+    idf_[word]=NULL;
+    }//Fim fun√ß√£o mapear
+
+    int size(){//Retorna o tamanho de quantas palavras tem no vocabulario de todos os documentos
+    return inv_.size();
+    }//Fim fun√ß√£o size.
+
+     set<string> busca(string word){//Busca se a palavra existe ou nao no indice invertido e retorna uma lista com os documentos com a palavra.
+        set<string> docsnabusca;
         if(inv_[word].empty()){
                 inv_.erase(word);
                 return docsnabusca;
@@ -85,67 +136,96 @@ public:Inv (string n){// construtor da classe com nome.
                 it++;
             }
             return docsnabusca;
-            }
     }
-    int size(){//Retorna o tamanho de quantas palavras tem no vocabulario de todos os documentos
-    return inv_.size();
-    }
-    void imprimeInv(){// Mostra todas as palavras do indice junto com os documentos que as contÈm.
-    map<string,set<string> >::iterator it ;
-    set<string>             ::iterator jt ;
-    for (it = inv_.begin() ; it != inv_.end() ; it++){
-        cout<<it->first<<endl;
-        for (jt = it->second.begin() ; jt != it->second.end(); jt++){
-            cout<< *jt <<endl;
-        }
-        cout<<endl<<endl;
-    }
-   }
-    set<string> documentosdabusca(set<string> palavrasdabusca){//FunÁ„o para retornar uma lista de documentos que contem todas as palavras da busca.
-    set<string> docsallwords; // Conjunto de string resultante que contem a lista de documentos com todas as palavras da busca.
+    }//Fim fun√ß√£o busca
+
+    set<string> documentosdabusca(set<string> palavrasdabusca){//Fun√ß√£o para retornar uma lista de documentos que contem todas as palavras da busca.
+
+    set<string> docsallwords;// Conjunto de string resultante que contem a lista de documentos com todas as palavras da busca.
+    set<string> espelho;
     set<string> ::iterator it = palavrasdabusca.begin();
-    set<string> ::iterator jt ;
-    while (it != palavrasdabusca.end()){//LaÁo while que pega palavra por paralavra e busca quais textos tem ou n„o tal palavra.
-    if (docsallwords.empty()){
-        docsallwords=busca(*it);
-        if (docsallwords.empty()){
-            return docsallwords;
-        }
+    while (it != palavrasdabusca.end()){//La√ßo while que pega palavra por paralavra e busca quais textos tem ou n√£o tal palavra.
+    espelho=busca(*it);
+    set<string> ::iterator jt = espelho.begin();
+    while (jt != espelho.end()){
+        docsallwords.insert(*jt);
+        jt++;
     }
-    docsallwords=intersecao(docsallwords,busca(*it));
     it++;
     }
     return docsallwords;
-    }//Fim funÁ„o documentosdabusca.
-    set<string> intersecao (set<string> a,set<string> b){// FunÁ„o que faz a intersecao de dois conjuntos de string
-    set<string> resultado;
-    for (set<string>::iterator it = a.begin(); it != a.end() ;it++){
-        for (set<string>::iterator jt = b.begin(); jt != b.end() ; jt++){
-         if(*it==*jt)resultado.insert(*it);
+    }//Fim fun√ß√£o documentosdabusca.
+
+
+    void calcularidf (int n){// Calcula idf N √© o numero de documentos totais.
+    map<string,set<string> >::iterator it ;
+
+    for (it = inv_.begin() ; it != inv_.end() ; it++){
+        idf_[it->first]=log (n*1.000000/it->second.size()*1.000000);
     }
+    }//Fim fun√ß√£o calcularidf
+
+
+    double returnidf (string word){//Retorna o idf da palavra desejada.
+    return idf_[word];
+    }//fim fun√ß√£o returnidf
+
+
+    map<string,double> exportidf (set<string> word){
+    map<string,double> idf;
+    set<string>::iterator it = word.begin();
+
+    while (it != word.end()){
+    idf[*it]=idf_[*it];
+    it++;
     }
-         return resultado;
-    }
-};// Fim classe Õndice Invertido Inv.
+    return idf;
+    }//Fim fun√ß√£o exportaridf
 
+};// Fim classe √çndice Invertido Inv.
 
-
-
+                                            /***********************************************************************************/
+/********************************************************************* IN√çCIO INT MAIN ********************************************************************************/
+                                           /***********************************************************************************/
 
 int main (){
+list<string> nomearquivos;
+
+ DIR *dir;// Aqui come√ßa a buscar todos os arquivos .txt do diretorio onde esta o arquivo.
+    struct dirent *lsdir;
+
+    dir = opendir("c:\\Users\\victor lambertucci\\Desktop\\TP PRONTO");
+
+
+    while ( ( lsdir = readdir(dir) ) != NULL )
+    {
+        string nome( lsdir->d_name );
+
+        if (nome[(nome.size()-4)]=='.'&&nome[(nome.size()-3)]=='t'&&nome[(nome.size()-2)]=='x'&&nome[(nome.size()-1)]=='t'){//Lista somente arquivos com final .txt
+            if (nome=="busca.txt"){}
+            else {
+                nomearquivos.push_back(nome);
+            }
+        }
+
+
+    }
+
+    closedir(dir);// Aqui finaliza a busca dos arquivos do diretorio.
+
+    list<string>::iterator na = nomearquivos.begin();
+
+
 Inv indiceinvertido("Indice invertido");
 list<Doc> alldocs;
 list<Doc>::iterator it = alldocs.begin();
-int i=0;
+int contador=0;
 
 
-while (i<3){
+while (contador<nomearquivos.size()){//La√ßo while que come√ßa a mapear cada arquivo como 1 DOC na lista de documentos alldocs.
 string nomearq,linha;
 
-cout<<"Digite o nome do documento a ser inserido: ";
-cin>>nomearq;
-nomearq+=".txt";
-
+nomearq = *na;
 
 vector<char>character;
 
@@ -154,19 +234,19 @@ ifstream documento;
 documento.open(nomearq);
 
 
-if (documento.is_open()){//Se o arquivo foi encontrado executar os comando do laÁo.
+if (documento.is_open()){//Se o arquivo foi encontrado executar os comando do la√ßo.
     alldocs.push_back(nomearq);
     it = alldocs.end();
     it--;
-    while(getline(documento,linha)){//LaÁo para percorrer todo o conteudo do arquivo.
+    while(getline(documento,linha)){//La√ßo para percorrer todo o conteudo do arquivo.
 
-linha.resize(linha.size()+1);//Usado para o laÁo posterior saber quando h· uma quebra de linha
-linha.push_back('\n');//Usado para o laÁo posterior saber quando h· uma quebra de linha
+linha.resize(linha.size()+1);//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
+linha.push_back('\n');//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
 
-for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do documento.
-    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//laÁo para retirar caracteres de pontuaÁ„o.
+for (int i=0;i<linha.size();i++){//La√ßo para retirar palavra por palavra do documento.
+    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//la√ßo para retirar caracteres de pontua√ß√£o.
     }
-    else if (linha[i]==' '){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]==' '){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         palavra=converter(palavra);
@@ -176,7 +256,7 @@ for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do docu
         character.clear();
 
     }
-    else if (linha[i]=='\n'){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]=='\n'){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         palavra.pop_back();
@@ -192,8 +272,6 @@ for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do docu
 
     }
 
-
-
 }
 
 else{
@@ -201,41 +279,38 @@ cout<<"O arquivo nao pode ser encontrado, verifique se o arquivo esta dentro da 
 }
 
 documento.close();
-i++;
-}//fim while da inserÁ„o de documentos no programa
+na++;
+contador++;
+}//fim while da inser√ß√£o de documentos no programa
 
 
-
-ofstream arquivobusca;//Inicio para produzir um documento com as palavras a serem procuradas
+ofstream arquivobusca;//Inicio para produzir um documento de busca com as palavras a serem procuradas
 arquivobusca.open("busca.txt");
 string busca;
 cout<<endl<<"Digite sua busca : ";
 fflush(stdin);
 getline(cin,busca);
 arquivobusca << busca;// Passagem do que foi digitado na string busca para um documento de texto com o nome busca.txt dentro do diretorio do programa.
-arquivobusca.close();
+arquivobusca.close();// Fecha a inicializa√ß√£o do documento de busca.
 
+Doc pesquisa("pesquisa");// Cria um documento da classe Doc para poder fazer opera√ß√µes.
 
-Doc pesquisa("pesquisa");// Cria um documento da classe Doc para poder fazer operaÁıes.
-
-
-ifstream abrebusca;
+ifstream abrebusca;//Inicia a intrudu√ß√£o do documento de busca a um objeto da classe Doc
 abrebusca.open("busca.txt");
 
-
-if (abrebusca.is_open()){//Se o arquivo foi encontrado executar os comando do laÁo.
+if (abrebusca.is_open()){//Se o arquivo foi encontrado executar os comando do la√ßo.
 string linha;
 vector<char>character;
 
-    while(getline(abrebusca,linha)){//LaÁo para percorrer todo o conteudo do arquivo.
+    while(getline(abrebusca,linha)){//La√ßo para percorrer todo o conteudo do arquivo.
 
-linha.resize(linha.size()+1);//Usado para o laÁo posterior saber quando h· uma quebra de linha
-linha.push_back('\n');//Usado para o laÁo posterior saber quando h· uma quebra de linha
+linha.resize(linha.size()+1);//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
+linha.push_back('\n');//Usado para o la√ßo posterior saber quando h√° uma quebra de linha
 
-for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do documento.
-    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//laÁo para retirar caracteres de pontuaÁ„o.
+for (int i=0;i<linha.size();i++){//La√ßo para retirar palavra por palavra do documento.
+    if (linha[i]=='.'||linha[i]==','||linha[i]==';'||linha[i]==':'||linha[i]=='!'||linha[i]=='?'){//la√ßo para retirar caracteres de pontua√ß√£o.
     }
-    else if (linha[i]==' '){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]==' '){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         pesquisa.mapear(converter(palavra));
@@ -243,7 +318,7 @@ for (int i=0;i<linha.size();i++){//LaÁo para retirar palavra por palavra do docu
         character.clear();
 
     }
-    else if (linha[i]=='\n'){//laÁo para mandar para a funÁ„o converter quando È identificado que a palavra acabou de ser retirada do texto completamente.
+    else if (linha[i]=='\n'){//la√ßo para mandar para a fun√ß√£o converter quando √© identificado que a palavra acabou de ser retirada do texto completamente.
 
         string palavra( character.begin(), character.end() );
         palavra.pop_back();
@@ -266,75 +341,86 @@ cout<<"O arquivo nao pode ser encontrado, verifique se o arquivo esta dentro da 
 abrebusca.close();//Fecha o arquivo que produz um documento para busca.
 
 
-/*pesquisa.returnwords();*/
-
-/*indiceinvertido.imprimeInv();*/
-
-
-set<string> docsbusca;
+set<string> docsbusca;//Nome com os Documentos onde contem pelo menos uma palavra da busca
 docsbusca=indiceinvertido.documentosdabusca(pesquisa.returnwords());
 
 if (docsbusca.empty()){
-    cout<<"Nao ha documentos com essa busca =( "<<endl;
+    cout<<"Nao ha documentos relacionados com essa busca =( "<<endl;
 }
 else{
 set<string>::iterator db = docsbusca.begin();
-cout<<"Os documentos que contem a busca sao =) : "<<endl<<endl;
+cout<<"O(s) documento(s) que contem alguma palavra busca e(sao) =) : "<<endl<<endl;
 while(db != docsbusca.end()){
     cout<<*db<<endl;
     db++;
 }
 }
 
+indiceinvertido.calcularidf(alldocs.size());
 
 
-
-
-
-
-
-
-/*
-cout<<"O numero de palavras do vocabulario do documento de busca e : "<<pesquisa.size()<<endl;
-cout<<"Existe a palavra no doc de pesquisa 1 sim 0 nao : "<<pesquisa.find("casa")<<endl;
-cout<<"Existe a palavra no doc de pesquisa 1 sim 0 nao : "<<pesquisa.find("guardaroupa")<<endl;
-cout<<"Existe a palavra no doc de pesquisa 1 sim 0 nao : "<<pesquisa.find("apartamento")<<endl;
-
-*/
-
-
-
-/*
-it = alldocs.begin(); //inicio para testar se tem a palavra em um certo documento no Set<Doc> alldocs;
+it = alldocs.begin();// exportar para cada doc o respectivo idf do conjunto de palavras dentro de todos os docs.
 while (it != alldocs.end()){
-
-cout<<it->find("eu")<<endl;
-cout<<it->find("nos")<<endl;
-cout<<it->find("campeao")<<endl;
-cout<<it->find("casa")<<endl;
-cout<<it->find("existe")<<endl;
-cout<<it->find("entretanto")<<endl;
-cout<<it->find("guardaroupa")<<endl;
-cout<<it->find("coracao")<<endl;
-
-cout<<it->filename()<<endl<<endl;
+    it->importidf(indiceinvertido.exportidf(it->returnwords()));
     it++;
 }
 
-cout<<"Quantos docs existem para busca :";
-cout<<alldocs.size()<<endl;
+pesquisa.importidf(indiceinvertido.exportidf(pesquisa.returnwords()));
+pesquisa.coordenadaW();
 
-indiceinvertido.busca("casa");
 
-cout<<endl<<"Quantidade de palavras do vocabulario : "<<indiceinvertido.size();*/
+it = alldocs.begin();
+while (it != alldocs.end()){
+   it->coordenadaW();
+    it++;
+}
+
+set<string> searchdocs = pesquisa.returnwords();
+
+for (it = alldocs.begin(); it != alldocs.end() ;it++){// La√ßo for para rankear a busca com os documentos a partir do cosseno.
+    for (set<string>::iterator db = docsbusca.begin(); db != docsbusca.end() ;db++){
+
+        if (it->filename()==*db){
+        for(set<string>::iterator vx = searchdocs.begin(); vx != searchdocs.end() ; vx++){
+        it->cosseno(*vx,pesquisa.returnW(*vx));
+        }
+        }
+    }
+}// Fim la√ßo for que rankeia pelo cosseno.
+
+
+map<double,set<string> >  ranking;//Mapear os documentos pelo ranking e retornar os docs da busca.
+it = alldocs.begin();
+int contacos=0;// Variavel para contar quantas vezes h√° cosseno 0 no conjunto de documentos.
+while (it != alldocs.end()){
+    if (it->returncosseno()!= 0){
+    ranking[(1/(it->returncosseno()))].insert(it->filename());//Inverte o cossento para poder ser representado no map, de forma onde o mais significativo √© o que tem maior cosseno.
+    }
+    else {contacos++;}
+    it++;
+}
+
+if(contacos==alldocs.size()){}
+else {
+    map<double,set<string> >::iterator rk ;
+    set<string>             ::iterator jt ;
+    int countrank = 0;
+cout <<"**************DOCUMENTOS POR ORDEM DE IMPORTANCIA**************"<<endl;
+    for (rk = ranking.begin() ; rk != ranking.end() ; rk++){
+            countrank++;
+           cout<<"|"<< countrank <<"o  ---> ";
+        for (jt = rk->second.begin() ; jt != rk->second.end(); jt++){
+            cout<< *jt <<"   ";
+        }
+        cout<<endl<<endl;
+    }
+}
 
 return 0;
 }/************************************************************************** FIM INT MAIN *****************************************************************************/
 
 
-
-
-string converter(string word){//funÁ„o para colocar a palavra em min˙sculo e retirar hifÈns.
+string converter(string word){//fun√ß√£o para colocar a palavra em min√∫sculo e retirar hif√©ns.
 
 int hifen=1;
 while (hifen){
@@ -353,196 +439,4 @@ for (int i=0;i < word.size();i++){
 }
 return word;
 }
-
-
-
-
-/*class Alldocs{
-private:
-    string nome_;
-    list<Doc> alldocs_;
-    list<Doc>::iterator it_;
-
-public:
-    Alldocs(string c){//construtor somente nome
-    this->nome_ = c;
-    }
-
-    Alldocs(string c,list<Doc> d){// Construtor nome + lista
-    this->nome_ = c;
-    this->alldocs_ = d;
-    }
-
-    void inserir(list<Doc> d){// Coloca uma lista de documentos no objeto da classe
-    this->alldocs_ = d;
-    }
-
-    bool find(string word){// Procurar o ducomento pelo nome.
-    it_ = alldocs_.begin();
-
-    while(it_ != alldocs_.end()){
-        if (it_->filename()==word) {return true;}
-        it_++;
-    }
-    return false;
-    }
-
-    int size(){//Retorna tamanho da lista de documentos
-    return alldocs_.size();
-    }
-
-
-};*/
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-Alldocs todos("Lista De Todos Os Documentos");
-list<Doc> alldocs;
-
-int i=0;
-
-while (i<3){
-string nomearq;
-cin>>nomearq;
-alldocs.push_back(nomearq);
-i++;
-}
-
-    todos.inserir(alldocs);
-
-    list<Doc>::iterator it = alldocs.begin();
-
-    while(it != alldocs.end()){
-    cout<<it->namefile()<<endl;
-    it++;
-    }
-
-    cout<<todos.find("doc1");
-    cout<<todos.size();
-*/
-
-
-
-
-
-
-
-/*
-Doc doc1("doc1.txt");
-Doc doc2("doc2.txt");
-
-doc1.mapear("azul");
-doc1.mapear("branco");
-doc1.mapear("vermelho");
-doc1.mapear("casa");
-
-doc2.mapear("casa");
-doc2.mapear("apartamento");
-doc2.mapear("lote");
-
-set<string> conjuntodocs;
-
-string word;
-cout<<"Digite a palavra que deseja buscar : ";
-cin>>word;
-
-if (doc1.find(word)==true){conjuntodocs.insert(doc1.namefile());}
-if (doc2.find(word)==true){conjuntodocs.insert(doc2.namefile());}
-set<string>::iterator it = conjuntodocs.begin();
-
-if (conjuntodocs.empty()){cout<<"Nao ha documentos que contem essa palavra :";}
-else{
-     cout<<"Os documentos que contem a palavra sao : ";
-while(it != conjuntodocs.end()){
-     cout<<*it<<"  "<<endl;
-     it++;
-}
-}
-
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-Doc doc1("doc1.txt");
-Doc doc2("doc2.txt");
-
-doc1.mapear("azul");
-doc1.mapear("branco");
-doc1.mapear("vermelho");
-
-doc2.mapear("casa");
-doc2.mapear("apartamento");
-doc2.mapear("lote");
-
-
-set<string> alldocs;
-alldocs.insert(doc1.namefile());
-alldocs.insert(doc2.namefile());
-set<string>::iterator it = alldocs.begin();
-
-while (it != alldocs.end()){
-    cout<<*it<<endl;
-    it++;
-}
-*/
-
-
-
-
-
-
-
-
-
-
-
-
-/*
-set<int> i;
-i.insert(40);
-i.insert(10);
-i.insert(70);
-i.insert(20);
-i.insert(30);
-i.insert(70);
-i.insert(30);
-
-set<int>::iterator it = i.begin();
-
-while(it != i.end()){
-    cout<<*it<<endl;
-    it++;
-}
-
-*/
 
