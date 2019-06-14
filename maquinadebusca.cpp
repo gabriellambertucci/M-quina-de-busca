@@ -349,7 +349,7 @@ if (docsbusca.empty()){
 }
 else{
 set<string>::iterator db = docsbusca.begin();
-cout<<"O(s) documento(s) que contem alguma palavra busca e(sao) =) : "<<endl<<endl;
+cout<<"O(s) documento(s) que contem alguma palavra da busca e(sao) =) : "<<endl<<endl;
 while(db != docsbusca.end()){
     cout<<*db<<endl;
     db++;
